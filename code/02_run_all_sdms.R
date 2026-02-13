@@ -27,6 +27,11 @@ dat <- rbind(dplyr::select(bc, year, survey, species, scientific_name,
 dat$species <- tolower(dat$species)
 dat$species[which(dat$species%in%c("spiny dogfish","pacific spiny dogfish"))] = "north pacific spiny dogfish"
 
+temp_ranges <- dplyr::group_by(dat, species, region) %>%
+  dplyr::filter(cpue_kg_km2 > 0) %>%
+  dplyr::summarize(min_temp = min(temp,na.rm=T), max_temp = max(temp,na.rm=T))
+saveRDS(temp_ranges, "output/temp_ranges.rds")
+
 # filter common years
 dat <- dplyr::filter(dat, year>=2003)
 
@@ -200,7 +205,8 @@ for(i in 1:nrow(species_table)) {
     this_species = species_table$species[i]
     fit <- readRDS(file = paste0("output/all/", this_species, "_model",j,".rds"))
     s <- sanity(fit, silent=TRUE)
-    if(s$hessian_ok + s$eigen_values_ok + s$nlminb_ok == 3) aic_table[i,j] = AIC(fit)
+    #if(s$hessian_ok + s$eigen_values_ok + s$nlminb_ok == 3) aic_table[i,j] = AIC(fit)
+    if(s$all_ok) aic_table[i,j] = AIC(fit)
   }
 }
 write.csv(aic_table, "aic_table.csv")

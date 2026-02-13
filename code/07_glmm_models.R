@@ -45,15 +45,15 @@ rho$species <- factor(rho$species, levels = rho$species)
 # ggsave("plots/Correlations.png")
 
 #fit <- glmmTMB(diff_width ~ mean_temp + (1|species), data = dat)
-fit <- glmmTMB(width ~ mean_temp * (species), data = dat)
-
-# test for trend through time
-coefs <- data.frame(species = unique(dat$species), coef = 0, p=0)
-for(i in 1:nrow(coefs)) {
-  fit <- lm(mean_enviro ~ year, data = dplyr::filter(dat, species == coefs$species[i]))
-  coefs$coef[i] <- summary(fit)$coefficients[2,1]
-  coefs$p[i] <- summary(fit)$coefficients[2,4]
-}
+# fit <- glmmTMB(width ~ mean_temp * (species), data = dat)
+# 
+# # test for trend through time
+# coefs <- data.frame(species = unique(dat$species), coef = 0, p=0)
+# for(i in 1:nrow(coefs)) {
+#   fit <- lm(mean_enviro ~ year, data = dplyr::filter(dat, species == coefs$species[i]))
+#   coefs$coef[i] <- summary(fit)$coefficients[2,1]
+#   coefs$p[i] <- summary(fit)$coefficients[2,4]
+# }
 
 dat <- dplyr::group_by(dat, species) %>% 
   dplyr::mutate(diff_width = c(NA, diff(width)),
@@ -87,6 +87,9 @@ coefs <- dplyr::left_join(coefs, rho)
 
 coefs$Species <- paste0(toupper(substr(coefs$Species,1,1)), substr(coefs$Species,2,nchar(coefs$Species)))
 coefs <- dplyr::arrange(coefs, estimate)
+
+coefs$Species[which(coefs$Species=="North pacific spiny dogfish")] = "Pacific Spiny Dogfish"
+
 coefs$Speciesf <- factor(coefs$Species, levels = coefs$Species)  
 
 p1 <- dplyr::filter(coefs, Speciesf %in% c("Pacific grenadier","Giant grenadier") == FALSE) %>%
